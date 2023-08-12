@@ -1,10 +1,11 @@
 import requests
 import base64
+from app.secrets import GITHUB_ACCESS_TOKEN
 
-def fetch_repository_files(repo_owner, repo_name, access_token):
+def fetch_repository_files(repo_owner, repo_name):
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/git/trees/main?recursive=1"
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
         "Accept": "application/vnd.github.v3+json"
     }
     response = requests.get(url, headers=headers)
@@ -16,10 +17,10 @@ def fetch_repository_files(repo_owner, repo_name, access_token):
     return []
 
 
-def fetch_file_content(repo_owner, repo_name, file_path, access_token):
+def fetch_file_content(repo_owner, repo_name, file_path):
     url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
         "Accept": "application/vnd.github.v3+json"
     }
     response = requests.get(url, headers=headers)
