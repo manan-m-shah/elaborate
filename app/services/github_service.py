@@ -6,6 +6,21 @@ from app.core.parser import parseFile
 from app.secrets import GITHUB_ACCESS_TOKEN
 
 
+# Service to fetch all user repositories from GitHub
+def fetch_user_repositories(username):
+    url = f"https://api.github.com/users/{username}/repos"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        repo_data = response.json()
+        repositories = [{"name": item["name"], "description": item["description"]} for item in repo_data]
+        return repositories
+    return []
+
 # Service to fetch repository contents from GitHub
 def fetch_repo(repo_owner, repo_name):
     # Creating a temporary folder to clone the repository
