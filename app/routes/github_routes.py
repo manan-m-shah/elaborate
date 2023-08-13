@@ -1,8 +1,16 @@
-from fastapi import APIRouter, Depends
-from app.services.github_service import fetch_repository_files, fetch_file_content
+import os
+import time
+from fastapi import APIRouter
+from fastapi.responses import FileResponse
+from app.services.github_service import fetch_repo, fetch_repository_files, fetch_file_content
 from app.secrets import GITHUB_ACCESS_TOKEN
 
 router = APIRouter()
+
+@router.get("/repo")
+async def get_repo(repo_owner: str, repo_name: str):
+    content = fetch_repo(repo_owner, repo_name)
+    return FileResponse(content, filename=f"{repo_owner}_{repo_name}.txt")
 
 @router.get("/get_repository_files")
 async def get_repository_files(repo_owner: str, repo_name: str):
