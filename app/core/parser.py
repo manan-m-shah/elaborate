@@ -1,4 +1,5 @@
 import os
+import fnmatch
 from app.utils.storage import get_new_temp_dir
 from app.utils.ignore import IGNORED_PATTERNS, IGNORED_FILES, IGNORED_FOLDERS
 
@@ -23,7 +24,8 @@ def parseFile(repo_owner, repo_name, temp_folder):
             for file_name in files:
                 file_path = os.path.join(root, file_name)
                 relative_file_path = os.path.relpath(file_path, temp_folder)
-                if any(pattern in file_path for pattern in IGNORED_FILES):
+                should_ignore = any(fnmatch.fnmatch(file_name, pattern) for pattern in IGNORED_FILES)
+                if should_ignore:
                     continue  # Skip ignored patterns
                 try:
                     with open(file_path, "r") as file:
