@@ -25,10 +25,11 @@ jobs:
 
       - name: Configure AWS Credentials
         run: |
+          mkdir -p ~/.aws
           echo "[default]" > ~/.aws/credentials
           echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
           echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-
+    
       - name: Deploy to AWS Lambda
         env:
           AWS_REGION: eu-north-1
