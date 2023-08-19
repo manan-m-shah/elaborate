@@ -1,0 +1,48 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure AWS Credentials
+        run: |
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+
+      - name: Deploy to AWS Lambda
+        env:
+          AWS_REGION: eu-north-1
+        run: |
+          # Zip your code and dependencies into a deployment package
+          zip -r deployment_package.zip . -x "venv/*"  # Exclude virtual environment
+
+          # Deploy the deployment package to AWS Lambda
+          aws lambda update-function-code --function-name elaborate --zip-file fileb://./deployment_package.zip
+
+          # Update the Lambda function configuration (handler and other settings)
+          aws lambda update-function-configuration --function-name elaborate --handler main.handler
+          
+      - name: Clean Up
+        run: |
+          # Remove the deployment package after deployment
+          rm deployment_package.zip
