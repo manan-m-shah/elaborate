@@ -1,0 +1,52 @@
+name: Create and Add Lambda Layer
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-layer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create Layer ZIP
+        run: |
+          mkdir -p layer/python/lib/python3.11/site-packages
+          python -m pip install --upgrade pip
+          pip install --target layer/python/lib/python3.11/site-packages -r requirements.txt
+          cd layer
+          zip -r layer.zip .
+
+      - name: Configure AWS Credentials
+        run: |
+          mkdir -p ~/.aws
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+
+      - name: Update Lambda Layer
+        run: |
+          aws lambda publish-layer-version \
+            --layer-name elaborate-layer \
+            --description "Layer for Elaborate Function" \
+            --compatible-runtimes python3.11 \
+            --zip-file fileb://layer/layer.zip \
+            --region eu-north-1
+      
+      - name: Clean Up
+        run: |
+          rm layer/layer.zip
