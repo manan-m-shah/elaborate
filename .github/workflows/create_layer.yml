@@ -1,9 +1,10 @@
-name: Create and Add Lambda Layer
-
 on:
   push:
     branches:
       - main
+    paths:
+      - 'requirements.txt'
+      - '.github/workflows/create-layer.yml'
 
 jobs:
   create-layer:
@@ -11,12 +12,12 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Install Dependencies
         run: |
@@ -39,15 +40,17 @@ jobs:
           echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
 
       - name: Update Lambda Layer
+        env:
+          AWS_REGION: eu-north-1
         run: |
           aws lambda publish-layer-version \
             --layer-name elaborate-layer \
             --description "Layer for Elaborate Function" \
             --compatible-runtimes python3.11 \
-            --zip-file fileb://layer/layer.zip \
-            --region eu-north-1
+            --zip-file fileb://layer/layer.zip
+          latest_layer_arn=$(aws lambda list-layer-versions --layer-name elaborate-layer --query 'LayerVersions[0].LayerVersionArn' --output text)
+          aws lambda update-function-configuration --function-name elaborate --layers $latest_layer_arn --handler main.handler
       
       - name: Clean Up
         run: |
           rm layer/layer.zip
-          
